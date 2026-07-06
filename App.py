@@ -92,3 +92,37 @@ if st.session_state.match_id != "":
         st.metric("Match ID",st.session_state.match_id)
 
     st.success("Ready for Toss 🎲")
+#---------- part 2---------
+
+import streamlit as st
+import random
+
+players = ["Joy", "Krish", "Som"]
+
+st.header("🎲 Batting Group Toss")
+
+if st.button("Start Batting Toss"):
+
+    order = random.sample(players,3)
+
+    st.success("Batting Toss Result")
+
+    st.write("🥇 1st :", order[0])
+    st.write("🥈 2nd :", order[1])
+    st.write("🥉 3rd :", order[2])
+
+    draft_order = [
+        order[0],
+        order[1],
+        order[2],
+        order[2],
+        order[1],
+        order[0]
+    ]
+
+    groups = ["A","B","C","D","E","F"]
+
+    st.subheader("Snake Draft")
+
+    for i in range(6):
+        st.write(f"Pick {i+1} : {draft_order[i]} chooses one group")
