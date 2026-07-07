@@ -25,9 +25,9 @@ def connect_sheet():
 
 def create_match(match_id, player):
 
-    sheet = connect_sheet().worksheet("Match")
+    ws = connect_sheet().worksheet("Match")
 
-    sheet.append_row([
+    ws.append_row([
         match_id,
         player,
         "Waiting",
@@ -38,12 +38,17 @@ def create_match(match_id, player):
 
 def join_match(match_id):
 
-    sheet = connect_sheet().worksheet("Match")
+    ws = connect_sheet().worksheet("Match")
 
-    rows = sheet.get_all_values()
+    rows = ws.get_all_values()
 
-    for row in rows:
+    for row in rows[1:]:      # Header row বাদ
         if row[0] == match_id:
             return True
 
     return False
+
+
+def get_sheet(name):
+
+    return connect_sheet().worksheet(name)
