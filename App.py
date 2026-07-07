@@ -5,7 +5,7 @@ import string
 import gspread
 from google.oauth2.service_account import Credentials
 from sheet import create_match, join_match
-
+from draft import batting_toss, bowling_toss
 
 st.set_page_config(page_title="Cricket Trump Cards", layout="wide")
 
@@ -142,6 +142,12 @@ if st.session_state.match_id != "":
         st.metric("Match ID",st.session_state.match_id)
 
     st.success("Ready for Toss 🎲")
+
+if st.button("🎲 Start Batting Toss"):
+    batting_toss()
+
+if st.button("🎯 Start Bowling Toss"):
+    bowling_toss()
 #---------- part 2---------
 
 import streamlit as st
