@@ -4,7 +4,7 @@ import random
 import string
 import gspread
 from google.oauth2.service_account import Credentials
-from sheet import create_match, join_match
+from sheet import connect_sheet
 from draft import batting_toss, bowling_toss
 from group import pick_group
 from player import select_player
@@ -28,28 +28,6 @@ if "player" not in st.session_state:
 def generate_match():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
-menu = st.sidebar.radio(
-    "Menu",
-    ["Create Match", "Join Match"]
-)
-
-    scope = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive"
-    ]
-
-    creds = Credentials.from_service_account_info(
-        st.secrets["gcp_service_account"],
-        scopes=scope
-    )
-
-    client = gspread.authorize(creds)
-
-    sheet = client.open_by_key(
-        "1cmH0UZbWBvkmjbPq2dP5HCKsKEY2FFaB"
-    )
-
-    return sheet
 
 # -------------------------
 # Create Match
