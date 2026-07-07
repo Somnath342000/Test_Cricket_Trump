@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd 
 import random
 import string
 import gspread
@@ -67,6 +68,17 @@ if menu == "Create Match":
 
         st.session_state.match_id = match
         st.session_state.player = player
+        sheet = connect_sheet()
+
+match_sheet = sheet.worksheet("Match")
+
+match_sheet.append_row([
+    match,
+    player,
+    "Waiting",
+    "",
+    ""
+])
 
         st.success("Match Created")
 
@@ -94,6 +106,22 @@ else:
 
         st.session_state.match_id = match.upper()
         st.session_state.player = player
+        sheet = connect_sheet()
+
+match_sheet = sheet.worksheet("Match")
+
+rows = match_sheet.get_all_values()
+
+found = False
+
+for r in rows:
+    if r[0] == match.upper():
+        found = True
+
+if found:
+    st.success("Match Found")
+else:
+    st.error("Match ID Not Found")
 
         st.success("Joined Successfully")
 
