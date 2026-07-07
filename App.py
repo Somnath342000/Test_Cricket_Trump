@@ -8,6 +8,7 @@ from sheet import connect_sheet
 from draft import batting_toss, bowling_toss
 from group import pick_group
 from player import select_player
+from score import add_score, result
 
 st.set_page_config(page_title="Cricket Trump Cards", layout="wide")
 
@@ -167,3 +168,26 @@ select_player(
     "L",
     "BOWL"
 )
+st.header("🏆 Score")
+
+point = st.number_input(
+    "Point",
+    min_value=1,
+    max_value=6,
+    step=1
+)
+
+if st.button("Add Point"):
+    add_score(
+        st.session_state.match_id,
+        st.session_state.player,
+        point
+    )
+    st.success("Point Added")
+if st.button("Show Result"):
+
+    data = result(
+        st.session_state.match_id
+    )
+
+    st.write(data)
