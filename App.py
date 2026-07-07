@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd 
-import random
-import string
 import gspread
 from google.oauth2.service_account import Credentials
+import random
+import string
 from sheet import connect_sheet
 from draft import batting_toss, bowling_toss
 from group import pick_group
@@ -27,8 +27,11 @@ if "player" not in st.session_state:
 # -------------------------
 def generate_match():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-
-
+    
+menu = st.sidebar.radio(
+    "Menu",
+    ["Create Match", "Join Match"]
+)
 # -------------------------
 # Create Match
 # -------------------------
