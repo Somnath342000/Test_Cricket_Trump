@@ -1,6 +1,10 @@
 streamlit
 pandas
-beautifulsoup4
 requests
 lxml
 random
+gspread
+google-auth
+openpyxl
+beautifulsoup4
+lxml
