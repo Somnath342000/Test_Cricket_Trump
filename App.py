@@ -6,8 +6,8 @@ import gspread
 from google.oauth2.service_account import Credentials
 from sheet import create_match, join_match
 from draft import batting_toss, bowling_toss
-from group import batting_group,bowling_group
 from group import pick_group
+from player import select_player
 
 st.set_page_config(page_title="Cricket Trump Cards", layout="wide")
 
@@ -172,3 +172,14 @@ pick_group(
     "BOWL",
     1
 )
+st.header("🏏 Player Selection")
+
+bat = st.text_input("Your Batting Group")
+
+bowl = st.text_input("Your Bowling Group")
+
+if bat:
+    batter = select_player(bat, "bat")
+
+if bowl:
+    bowler = select_player(bowl, "bowl")
