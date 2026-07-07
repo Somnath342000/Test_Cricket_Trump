@@ -177,3 +177,24 @@ if bat:
 
 if bowl:
     bowler = select_player(bowl, "bowl")
+
+select_player(
+    st.session_state.match_id,
+    st.session_state.player,
+    "A",
+    "BAT 1"
+)
+
+select_player(
+    st.session_state.match_id,
+    st.session_state.player,
+    "E",
+    "BAT 2"
+)
+
+select_player(
+    st.session_state.match_id,
+    st.session_state.player,
+    "L",
+    "BOWL"
+)
