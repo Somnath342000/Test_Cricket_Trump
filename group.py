@@ -1,5 +1,3 @@
-
-#---------
 import streamlit as st
 from sheet import connect_sheet
 
@@ -9,7 +7,7 @@ BOWL = ["K","L","M","N","O","P"]
 
 def available_groups(match_id, typ):
 
-    ws = connect_sheet().worksheet("Draft")
+    ws = connect_sheet().worksheet("Groups")
 
     rows = ws.get_all_values()
 
@@ -24,21 +22,34 @@ def available_groups(match_id, typ):
 
 def pick_group(match_id, player, typ, pick):
 
+    ws = connect_sheet().worksheet("Groups")
+
+    rows = ws.get_all_values()
+
+    # একই Player আগে Pick করেছে কিনা
+    for r in rows[1:]:
+        if (
+            r[0] == match_id and
+            r[1] == str(pick) and
+            r[2] == player and
+            r[3] == typ
+        ):
+            st.success(f"{player} already selected {r[4]}")
+            return
+
     groups = available_groups(match_id, typ)
 
-    if len(groups)==0:
-        st.success("All Groups Selected")
+    if not groups:
+        st.warning("No Group Available")
         return
 
     g = st.selectbox(
         f"{typ} Group",
         groups,
-        key=f"{typ}{pick}"
+        key=f"{player}_{typ}_{pick}"
     )
 
-    if st.button(f"Confirm {typ} {pick}"):
-
-        ws = connect_sheet().worksheet("Draft")
+    if st.button(f"Confirm {typ} {pick}", key=f"btn_{player}_{typ}_{pick}"):
 
         ws.append_row([
             match_id,
@@ -48,4 +59,4 @@ def pick_group(match_id, player, typ, pick):
             g
         ])
 
-        st.success(f"{player} selected {g}")
+        st.success(f"{player} selected Group {g}")
