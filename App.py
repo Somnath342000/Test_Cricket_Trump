@@ -150,12 +150,6 @@ if st.button("🎲 Start Batting Toss"):
 
 if st.button("🎯 Start Bowling Toss"):
     bowling_toss()
-
-if st.session_state.match_id:
-
-    batting_group(st.session_state.player)
-
-    bowling_group(st.session_state.player)
     
 st.header("🏏 Group Draft")
 
