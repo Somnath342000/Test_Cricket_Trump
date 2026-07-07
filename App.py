@@ -62,29 +62,26 @@ if menu == "Create Match":
         ["Joy", "Krish", "Som"]
     )
 
-    if st.button("Create"):
+if st.button("Create"):
 
-        match = generate_match()
+    match = generate_match()
 
-        st.session_state.match_id = match
-        st.session_state.player = player
-        sheet = connect_sheet()
+    st.session_state.match_id = match
+    st.session_state.player = player
 
-match_sheet = sheet.worksheet("Match")
+    sheet = connect_sheet()
+    match_sheet = sheet.worksheet("Match")
 
-match_sheet.append_row([
-    match,
-    player,
-    "Waiting",
-    "",
-    ""
-])
+    match_sheet.append_row([
+        match,
+        player,
+        "Waiting",
+        "",
+        ""
+    ])
 
-        st.success("Match Created")
-
-        st.write("### Match ID")
-
-        st.code(match)
+    st.success("Match Created")
+    st.code(match)
 
         st.info("Share this Match ID with other players.")
 
@@ -104,25 +101,25 @@ else:
 
     if st.button("Join"):
 
-        st.session_state.match_id = match.upper()
-        st.session_state.player = player
-        sheet = connect_sheet()
+    st.session_state.match_id = match.upper()
+    st.session_state.player = player
 
-match_sheet = sheet.worksheet("Match")
+    sheet = connect_sheet()
+    match_sheet = sheet.worksheet("Match")
 
-rows = match_sheet.get_all_values()
+    rows = match_sheet.get_all_values()
 
-found = False
+    found = False
 
-for r in rows:
-    if r[0] == match.upper():
-        found = True
+    for r in rows:
+        if r[0] == match.upper():
+            found = True
 
-if found:
-    st.success("Match Found")
-else:
-    st.error("Match ID Not Found")
-
+    if found:
+        st.success("Match Found")
+        st.success("Joined Successfully")
+    else:
+        st.error("Match ID Not Found")
         st.success("Joined Successfully")
 
 # -------------------------
