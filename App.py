@@ -7,6 +7,7 @@ from google.oauth2.service_account import Credentials
 from sheet import create_match, join_match
 from draft import batting_toss, bowling_toss
 from group import batting_group,bowling_group
+from group import pick_group
 
 st.set_page_config(page_title="Cricket Trump Cards", layout="wide")
 
@@ -155,3 +156,19 @@ if st.session_state.match_id:
     batting_group(st.session_state.player)
 
     bowling_group(st.session_state.player)
+    
+st.header("🏏 Group Draft")
+
+pick_group(
+    st.session_state.match_id,
+    st.session_state.player,
+    "BAT",
+    1
+)
+
+pick_group(
+    st.session_state.match_id,
+    st.session_state.player,
+    "BOWL",
+    1
+)
