@@ -6,6 +6,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 from sheet import create_match, join_match
 from draft import batting_toss, bowling_toss
+from group import batting_group,bowling_group
 
 st.set_page_config(page_title="Cricket Trump Cards", layout="wide")
 
@@ -148,37 +149,9 @@ if st.button("🎲 Start Batting Toss"):
 
 if st.button("🎯 Start Bowling Toss"):
     bowling_toss()
-#---------- part 2---------
 
-import streamlit as st
-import random
+if st.session_state.match_id:
 
-players = ["Joy", "Krish", "Som"]
+    batting_group(st.session_state.player)
 
-st.header("🎲 Batting Group Toss")
-
-if st.button("Start Batting Toss"):
-
-    order = random.sample(players,3)
-
-    st.success("Batting Toss Result")
-
-    st.write("🥇 1st :", order[0])
-    st.write("🥈 2nd :", order[1])
-    st.write("🥉 3rd :", order[2])
-
-    draft_order = [
-        order[0],
-        order[1],
-        order[2],
-        order[2],
-        order[1],
-        order[0]
-    ]
-
-    groups = ["A","B","C","D","E","F"]
-
-    st.subheader("Snake Draft")
-
-    for i in range(6):
-        st.write(f"Pick {i+1} : {draft_order[i]} chooses one group")
+    bowling_group(st.session_state.player)
