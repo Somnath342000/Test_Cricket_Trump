@@ -3,11 +3,9 @@ import streamlit as st
 
 players = ["Joy", "Krish", "Som"]
 
-def batting_toss():
 
-    order = random.sample(players, 3)
-
-    draft = [
+def snake(order):
+    return [
         order[0],
         order[1],
         order[2],
@@ -16,13 +14,22 @@ def batting_toss():
         order[0]
     ]
 
-    st.success("🏏 Batting Toss")
 
-    st.write("🥇 1st :", order[0])
-    st.write("🥈 2nd :", order[1])
-    st.write("🥉 3rd :", order[2])
+def batting_toss():
 
-    st.subheader("Batting Group Selection Order")
+    if "bat_order" not in st.session_state:
+        st.session_state.bat_order = random.sample(players, 3)
+
+    order = st.session_state.bat_order
+    draft = snake(order)
+
+    st.subheader("🏏 Batting Toss")
+
+    st.write(f"🥇 1st : {order[0]}")
+    st.write(f"🥈 2nd : {order[1]}")
+    st.write(f"🥉 3rd : {order[2]}")
+
+    st.write("### Batting Group Selection")
 
     for i, p in enumerate(draft):
         st.write(f"Pick {i+1} : {p}")
@@ -32,24 +39,19 @@ def batting_toss():
 
 def bowling_toss():
 
-    order = random.sample(players, 3)
+    if "bowl_order" not in st.session_state:
+        st.session_state.bowl_order = random.sample(players, 3)
 
-    draft = [
-        order[0],
-        order[1],
-        order[2],
-        order[2],
-        order[1],
-        order[0]
-    ]
+    order = st.session_state.bowl_order
+    draft = snake(order)
 
-    st.success("🎯 Bowling Toss")
+    st.subheader("🎯 Bowling Toss")
 
-    st.write("🥇 1st :", order[0])
-    st.write("🥈 2nd :", order[1])
-    st.write("🥉 3rd :", order[2])
+    st.write(f"🥇 1st : {order[0]}")
+    st.write(f"🥈 2nd : {order[1]}")
+    st.write(f"🥉 3rd : {order[2]}")
 
-    st.subheader("Bowling Group Selection Order")
+    st.write("### Bowling Group Selection")
 
     for i, p in enumerate(draft):
         st.write(f"Pick {i+1} : {p}")
