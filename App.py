@@ -1,6 +1,9 @@
 import streamlit as st
 import random
 import string
+import gspread
+from google.oauth2.service_account import Credentials
+
 
 st.set_page_config(page_title="Cricket Trump Cards", layout="wide")
 
@@ -25,6 +28,26 @@ menu = st.sidebar.radio(
     "Menu",
     ["Create Match", "Join Match"]
 )
+@st.cache_resource
+def connect_sheet():
+
+    scope = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
+
+    creds = Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"],
+        scopes=scope
+    )
+
+    client = gspread.authorize(creds)
+
+    sheet = client.open_by_key(
+        "1cmH0UZbWBvkmjbPq2dP5HCKsKEY2FFaB"
+    )
+
+    return sheet
 
 # -------------------------
 # Create Match
