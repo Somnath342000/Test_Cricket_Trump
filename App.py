@@ -4,6 +4,7 @@ import random
 import string
 import gspread
 from google.oauth2.service_account import Credentials
+from sheet import create_match, join_match
 
 
 st.set_page_config(page_title="Cricket Trump Cards", layout="wide")
@@ -62,27 +63,26 @@ if menu == "Create Match":
         ["Joy", "Krish", "Som"]
     )
 
-if st.button("Create"):
+    if st.button("Create"):
 
-    match = generate_match()
+        match = generate_match()
 
-    st.session_state.match_id = match
-    st.session_state.player = player
+        st.session_state.match_id = match
+        st.session_state.player = player
 
-    sheet = connect_sheet()
-    match_sheet = sheet.worksheet("Match")
+        sheet = connect_sheet()
+        match_sheet = sheet.worksheet("Match")
 
-    match_sheet.append_row([
-        match,
-        player,
-        "Waiting",
-        "",
-        ""
-    ])
+        match_sheet.append_row([
+            match,
+            player,
+            "Waiting",
+            "",
+            ""
+        ])
 
-    st.success("Match Created")
-    st.code(match)
-
+        st.success("Match Created")
+        st.code(match)
         st.info("Share this Match ID with other players.")
 
 # -------------------------
@@ -101,26 +101,28 @@ else:
 
     if st.button("Join"):
 
-    st.session_state.match_id = match.upper()
-    st.session_state.player = player
+        sheet = connect_sheet()
+        match_sheet = sheet.worksheet("Match")
 
-    sheet = connect_sheet()
-    match_sheet = sheet.worksheet("Match")
+        rows = match_sheet.get_all_values()
 
-    rows = match_sheet.get_all_values()
+        found = False
 
-    found = False
+        for r in rows:
+            if r[0] == match.upper():
+                found = True
+                break
 
-    for r in rows:
-        if r[0] == match.upper():
-            found = True
+        if found:
 
-    if found:
-        st.success("Match Found")
-        st.success("Joined Successfully")
-    else:
-        st.error("Match ID Not Found")
-        st.success("Joined Successfully")
+            st.session_state.match_id = match.upper()
+            st.session_state.player = player
+
+            st.success("Match Found")
+            st.success("Joined Successfully")
+
+        else:
+            st.error("Match ID Not Found")
 
 # -------------------------
 # Dashboard
