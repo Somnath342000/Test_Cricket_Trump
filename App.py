@@ -32,8 +32,6 @@ menu = st.sidebar.radio(
     "Menu",
     ["Create Match", "Join Match"]
 )
-@st.cache_resource
-def connect_sheet():
 
     scope = [
         "https://www.googleapis.com/auth/spreadsheets",
@@ -167,16 +165,6 @@ pick_group(
     1
 )
 st.header("🏏 Player Selection")
-
-bat = st.text_input("Your Batting Group")
-
-bowl = st.text_input("Your Bowling Group")
-
-if bat:
-    batter = select_player(bat, "bat")
-
-if bowl:
-    bowler = select_player(bowl, "bowl")
 
 select_player(
     st.session_state.match_id,
