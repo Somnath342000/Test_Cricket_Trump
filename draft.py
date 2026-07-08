@@ -4,9 +4,9 @@ import streamlit as st
 from sheet import get_sheet
 
 PLAYERS = [
+    "Som",
     "Joy",
-    "Krish",
-    "Som"
+    "Krish"
 ]
 
 
@@ -51,7 +51,7 @@ def save_toss(
             }
 
             ws.update(
-                f'{cols[column]}{i}',
+                f"{cols[column]}{i}",
                 [[json.dumps(order)]]
             )
 
@@ -74,7 +74,10 @@ def get_toss(
 
         if r["MatchID"] == match_id:
 
-            value = r.get(column, "")
+            value = r.get(
+                column,
+                ""
+            )
 
             if value:
                 return json.loads(value)
@@ -83,11 +86,9 @@ def get_toss(
 
 
 # ==========================
-# Generate Batting Toss
+# Batting Toss
 # ==========================
-def batting_toss(
-        match_id
-):
+def batting_toss(match_id):
 
     order = get_toss(
         match_id,
@@ -111,11 +112,9 @@ def batting_toss(
 
 
 # ==========================
-# Generate Bowling Toss
+# Bowling Toss
 # ==========================
-def bowling_toss(
-        match_id
-):
+def bowling_toss(match_id):
 
     order = get_toss(
         match_id,
@@ -139,7 +138,7 @@ def bowling_toss(
 
 
 # ==========================
-# Display Toss
+# Show Toss
 # ==========================
 def show_toss(
         title,
@@ -194,11 +193,13 @@ def current_turn(
     if pick_no > 6:
         return None
 
-    return seq[pick_no - 1]
+    return seq[
+        pick_no - 1
+    ]
 
 
 # ==========================
-# Can Pick?
+# Can Player Pick?
 # ==========================
 def can_pick(
         player,
@@ -212,3 +213,55 @@ def can_pick(
     )
 
     return player == turn
+
+
+# ==========================
+# Current Pick Number
+# ==========================
+def current_pick(
+        match_id,
+        typ
+):
+
+    ws = get_sheet("Groups")
+
+    rows = ws.get_all_records()
+
+    count = 0
+
+    for r in rows:
+
+        if r["MatchID"] != match_id:
+            continue
+
+        if typ == "BAT":
+
+            if r["Bat1"]:
+                count += 1
+
+            if r["Bat2"]:
+                count += 1
+
+        else:
+
+            if r["Bowl1"]:
+                count += 1
+
+            if r["Bowl2"]:
+                count += 1
+
+    return count + 1
+
+
+# ==========================
+# Draft Completed?
+# ==========================
+def draft_completed(
+        match_id,
+        typ
+):
+
+    return current_pick(
+        match_id,
+        typ
+    ) > 6
