@@ -3,9 +3,9 @@ import gspread
 from google.oauth2.service_account import Credentials
 
 
-# ==========================
-# Connection
-# ==========================
+# =====================================
+# Google Sheet Connection
+# =====================================
 @st.cache_resource
 def connect_sheet():
 
@@ -30,9 +30,9 @@ def get_sheet(name):
     return connect_sheet().worksheet(name)
 
 
-# ==========================
-# Match Sheet
-# ==========================
+# =====================================
+# MATCH SHEET
+# =====================================
 def create_match(match_id):
 
     ws = get_sheet("Match")
@@ -41,7 +41,9 @@ def create_match(match_id):
         match_id,
         "Waiting",
         1,
-        1
+        1,
+        "",
+        ""
     ])
 
 
@@ -71,48 +73,134 @@ def get_match(match_id):
     return None
 
 
-def update_match_status(match_id, status):
+def update_match_status(
+        match_id,
+        status
+):
 
     ws = get_sheet("Match")
 
     rows = ws.get_all_values()
 
-    for i, r in enumerate(rows[1:], start=2):
+    for i, r in enumerate(
+            rows[1:],
+            start=2
+    ):
 
         if r[0] == match_id:
-            ws.update(f"B{i}", [[status]])
+
+            ws.update(
+                f"B{i}",
+                [[status]]
+            )
+
             return
 
 
-def update_post(match_id, post):
+def update_post(
+        match_id,
+        post
+):
 
     ws = get_sheet("Match")
 
     rows = ws.get_all_values()
 
-    for i, r in enumerate(rows[1:], start=2):
+    for i, r in enumerate(
+            rows[1:],
+            start=2
+    ):
 
         if r[0] == match_id:
-            ws.update(f"C{i}", [[post]])
+
+            ws.update(
+                f"C{i}",
+                [[post]]
+            )
+
             return
 
 
-def update_call(match_id, call):
+def update_call(
+        match_id,
+        call
+):
 
     ws = get_sheet("Match")
 
     rows = ws.get_all_values()
 
-    for i, r in enumerate(rows[1:], start=2):
+    for i, r in enumerate(
+            rows[1:],
+            start=2
+    ):
 
         if r[0] == match_id:
-            ws.update(f"D{i}", [[call]])
+
+            ws.update(
+                f"D{i}",
+                [[call]]
+            )
+
             return
 
 
-# ==========================
-# Groups Sheet
-# ==========================
+# =====================================
+# TOSS
+# =====================================
+def save_toss(
+        match_id,
+        bat_order,
+        bowl_order
+):
+
+    ws = get_sheet("Match")
+
+    rows = ws.get_all_values()
+
+    for i, r in enumerate(
+            rows[1:],
+            start=2
+    ):
+
+        if r[0] == match_id:
+
+            ws.update(
+                f"E{i}:F{i}",
+                [[
+                    ",".join(bat_order),
+                    ",".join(bowl_order)
+                ]]
+            )
+
+            return
+
+
+def get_toss(match_id):
+
+    data = get_match(match_id)
+
+    if data is None:
+        return None
+
+    bat = []
+    bowl = []
+
+    if data["BatDraft"]:
+        bat = data["BatDraft"].split(",")
+
+    if data["BowlDraft"]:
+        bowl = data["BowlDraft"].split(",")
+
+    return {
+        "BatDraft": bat,
+        "BowlDraft": bowl
+    }
+
+
+# =====================================
+# GROUPS SHEET
+# =====================================
 def save_groups(
         match_id,
         player,
@@ -126,7 +214,10 @@ def save_groups(
 
     rows = ws.get_all_values()
 
-    for i, r in enumerate(rows[1:], start=2):
+    for i, r in enumerate(
+            rows[1:],
+            start=2
+    ):
 
         if (
                 r[0] == match_id and
@@ -135,8 +226,14 @@ def save_groups(
 
             ws.update(
                 f"C{i}:F{i}",
-                [[bat1, bat2, bowl1, bowl2]]
+                [[
+                    bat1,
+                    bat2,
+                    bowl1,
+                    bowl2
+                ]]
             )
+
             return
 
     ws.append_row([
@@ -149,7 +246,10 @@ def save_groups(
     ])
 
 
-def get_player_groups(match_id, player):
+def get_player_groups(
+        match_id,
+        player
+):
 
     ws = get_sheet("Groups")
 
@@ -162,19 +262,14 @@ def get_player_groups(match_id, player):
                 r["Player"] == player
         ):
 
-            return {
-                "Bat1": r["Bat1"],
-                "Bat2": r["Bat2"],
-                "Bowl1": r["Bowl1"],
-                "Bowl2": r["Bowl2"]
-            }
+            return r
 
     return None
 
 
-# ==========================
-# Selection Sheet
-# ==========================
+# =====================================
+# SELECTION SHEET
+# =====================================
 def save_selection(
         match_id,
         post,
@@ -188,7 +283,10 @@ def save_selection(
 
     rows = ws.get_all_values()
 
-    for i, r in enumerate(rows[1:], start=2):
+    for i, r in enumerate(
+            rows[1:],
+            start=2
+    ):
 
         if (
                 r[0] == match_id and
@@ -198,8 +296,13 @@ def save_selection(
 
             ws.update(
                 f"D{i}:F{i}",
-                [[card1, card2, card3]]
+                [[
+                    card1,
+                    card2,
+                    card3
+                ]]
             )
+
             return
 
     ws.append_row([
@@ -239,9 +342,39 @@ def get_selection(
     return None
 
 
-# ==========================
-# Scores Sheet
-# ==========================
+# =====================================
+# ALL USED CARDS
+# =====================================
+def used_cards(
+        match_id,
+        player
+):
+
+    ws = get_sheet("Selections")
+
+    rows = ws.get_all_records()
+
+    cards = []
+
+    for r in rows:
+
+        if (
+                r["MatchID"] == match_id and
+                r["Player"] == player
+        ):
+
+            cards.extend([
+                r["Card1"],
+                r["Card2"],
+                r["Card3"]
+            ])
+
+    return cards
+
+
+# =====================================
+# SCORES SHEET
+# =====================================
 def save_call(
         match_id,
         post,
@@ -265,7 +398,10 @@ def save_call(
     ])
 
 
-def get_scores(match_id, post):
+def get_scores(
+        match_id,
+        post
+):
 
     ws = get_sheet("Scores")
 
@@ -282,25 +418,61 @@ def get_scores(match_id, post):
             data.append(r)
 
     return data
-def save_toss(
+
+
+# =====================================
+# CHECK ALL PLAYERS SUBMITTED
+# =====================================
+def all_players_selected(
         match_id,
-        bat_order,
-        bowl_order
+        post
 ):
 
-    ws = get_sheet("Match")
+    ws = get_sheet("Selections")
 
-    rows = ws.get_all_values()
+    rows = ws.get_all_records()
 
-    for i, r in enumerate(rows[1:], start=2):
+    players = []
 
-        if r[0] == match_id:
+    for r in rows:
 
-            ws.update(
-                f"E{i}:F{i}",
-                [[
-                    ",".join(bat_order),
-                    ",".join(bowl_order)
-                ]]
+        if (
+                r["MatchID"] == match_id and
+                str(r["Post"]) == str(post)
+        ):
+
+            players.append(
+                r["Player"]
             )
-            return
+
+    return len(set(players)) == 3
+
+
+# =====================================
+# CHECK ALL GROUPS LOCKED
+# =====================================
+def all_groups_locked(
+        match_id
+):
+
+    ws = get_sheet("Groups")
+
+    rows = ws.get_all_records()
+
+    players = []
+
+    for r in rows:
+
+        if r["MatchID"] == match_id:
+
+            if (
+                r["Bat1"] and
+                r["Bat2"] and
+                r["Bowl1"] and
+                r["Bowl2"]
+            ):
+                players.append(
+                    r["Player"]
+                )
+
+    return len(set(players)) == 3
