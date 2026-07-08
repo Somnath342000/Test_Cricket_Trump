@@ -282,3 +282,25 @@ def get_scores(match_id, post):
             data.append(r)
 
     return data
+def save_toss(
+        match_id,
+        bat_order,
+        bowl_order
+):
+
+    ws = get_sheet("Match")
+
+    rows = ws.get_all_values()
+
+    for i, r in enumerate(rows[1:], start=2):
+
+        if r[0] == match_id:
+
+            ws.update(
+                f"E{i}:F{i}",
+                [[
+                    ",".join(bat_order),
+                    ",".join(bowl_order)
+                ]]
+            )
+            return
