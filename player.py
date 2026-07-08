@@ -112,9 +112,11 @@ def selection_page(
     # Card 3
     # Wild Card
     # ------------------
-    all_df = load_groups(
-        all_groups
-    )
+    used = [card1, card2]
+
+all_df = all_df[
+    ~all_df["Player Name"].isin(used)
+]
 
     card3 = st.selectbox(
         "Card 3 (Wild Card)",
