@@ -1,10 +1,20 @@
 import random
+import json
 import streamlit as st
+from sheet import get_sheet
 
-players = ["Joy", "Krish", "Som"]
+PLAYERS = [
+    "Joy",
+    "Krish",
+    "Som"
+]
 
 
+# ==========================
+# Snake Order
+# ==========================
 def snake(order):
+
     return [
         order[0],
         order[1],
@@ -15,45 +25,190 @@ def snake(order):
     ]
 
 
-def batting_toss():
+# ==========================
+# Save Toss
+# ==========================
+def save_toss(
+        match_id,
+        column,
+        order
+):
 
-    if "bat_order" not in st.session_state:
-        st.session_state.bat_order = random.sample(players, 3)
+    ws = get_sheet("Match")
 
-    order = st.session_state.bat_order
-    draft = snake(order)
+    rows = ws.get_all_values()
 
-    st.subheader("🏏 Batting Toss")
+    for i, r in enumerate(
+            rows[1:],
+            start=2
+    ):
 
-    st.write(f"🥇 1st : {order[0]}")
-    st.write(f"🥈 2nd : {order[1]}")
-    st.write(f"🥉 3rd : {order[2]}")
+        if r[0] == match_id:
 
-    st.write("### Batting Group Selection")
+            cols = {
+                "BatDraft": "E",
+                "BowlDraft": "F"
+            }
 
-    for i, p in enumerate(draft):
-        st.write(f"Pick {i+1} : {p}")
+            ws.update(
+                f'{cols[column]}{i}',
+                [[json.dumps(order)]]
+            )
 
-    return order, draft
+            return
 
 
-def bowling_toss():
+# ==========================
+# Read Toss
+# ==========================
+def get_toss(
+        match_id,
+        column
+):
 
-    if "bowl_order" not in st.session_state:
-        st.session_state.bowl_order = random.sample(players, 3)
+    ws = get_sheet("Match")
 
-    order = st.session_state.bowl_order
-    draft = snake(order)
+    rows = ws.get_all_records()
 
-    st.subheader("🎯 Bowling Toss")
+    for r in rows:
 
-    st.write(f"🥇 1st : {order[0]}")
-    st.write(f"🥈 2nd : {order[1]}")
-    st.write(f"🥉 3rd : {order[2]}")
+        if r["MatchID"] == match_id:
 
-    st.write("### Bowling Group Selection")
+            value = r.get(column, "")
 
-    for i, p in enumerate(draft):
-        st.write(f"Pick {i+1} : {p}")
+            if value:
+                return json.loads(value)
 
-    return order, draft
+    return None
+
+
+# ==========================
+# Generate Batting Toss
+# ==========================
+def batting_toss(
+        match_id
+):
+
+    order = get_toss(
+        match_id,
+        "BatDraft"
+    )
+
+    if order is None:
+
+        order = random.sample(
+            PLAYERS,
+            3
+        )
+
+        save_toss(
+            match_id,
+            "BatDraft",
+            order
+        )
+
+    return order
+
+
+# ==========================
+# Generate Bowling Toss
+# ==========================
+def bowling_toss(
+        match_id
+):
+
+    order = get_toss(
+        match_id,
+        "BowlDraft"
+    )
+
+    if order is None:
+
+        order = random.sample(
+            PLAYERS,
+            3
+        )
+
+        save_toss(
+            match_id,
+            "BowlDraft",
+            order
+        )
+
+    return order
+
+
+# ==========================
+# Display Toss
+# ==========================
+def show_toss(
+        title,
+        order
+):
+
+    st.subheader(title)
+
+    st.write(
+        f"🥇 1st : {order[0]}"
+    )
+
+    st.write(
+        f"🥈 2nd : {order[1]}"
+    )
+
+    st.write(
+        f"🥉 3rd : {order[2]}"
+    )
+
+    st.divider()
+
+    seq = snake(order)
+
+    st.write(
+        "Snake Draft Order"
+    )
+
+    for i, p in enumerate(
+            seq,
+            start=1
+    ):
+
+        st.write(
+            f"Pick {i} : {p}"
+        )
+
+
+# ==========================
+# Current Turn
+# ==========================
+def current_turn(
+        order,
+        pick_no
+):
+
+    seq = snake(order)
+
+    if pick_no < 1:
+        return None
+
+    if pick_no > 6:
+        return None
+
+    return seq[pick_no - 1]
+
+
+# ==========================
+# Can Pick?
+# ==========================
+def can_pick(
+        player,
+        order,
+        pick_no
+):
+
+    turn = current_turn(
+        order,
+        pick_no
+    )
+
+    return player == turn
