@@ -123,6 +123,17 @@ def selection_page(
     )
 
     st.divider()
+if len({
+        card1,
+        card2,
+        card3
+}) != 3:
+
+    st.error(
+        "Same player cannot be selected twice."
+    )
+    return
+
 
     if st.button("🔒 Lock Cards"):
 
