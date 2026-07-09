@@ -26,6 +26,10 @@ def connect_sheet():
     )
 
 
+def get_sheet(name):
+    return connect_sheet().worksheet(name)
+
+
 # =====================================
 # MATCH SHEET
 # =====================================
