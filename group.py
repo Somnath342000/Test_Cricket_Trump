@@ -70,15 +70,16 @@ def save_group_pick(
     # Duplicate protection
     if field.startswith("Bat"):
         if value not in available_batting(match_id):
-            raise Exception(
-                f"{value} group already selected."
-            )
-
+            st.error(
+    f"{value} group already selected."
+)
+return
     if field.startswith("Bowl"):
         if value not in available_bowling(match_id):
-            raise Exception(
-                f"{value} group already selected."
-            )
+            st.error(
+    f"{value} group already selected."
+)
+return
 
     ws = get_sheet("Groups")
     rows = ws.get_all_values()
