@@ -22,12 +22,8 @@ def connect_sheet():
     client = gspread.authorize(creds)
 
     return client.open_by_key(
-        "1cmH0UZbWBvkmjbPq2dP5HCKsKEY2FFaB"
+        "1xFyZezkjGk665bGw5VnX3OwaWT2_gj_fglYg1MUrJ8U"
     )
-
-
-def get_sheet(name):
-    return connect_sheet().worksheet(name)
 
 
 # =====================================
