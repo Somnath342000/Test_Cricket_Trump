@@ -38,6 +38,15 @@ st.set_page_config(
 )
 
 st.title("🏏 Cricket Stats Trump Cards")
+st.title("🏏 Cricket Stats Trump Cards")
+
+# Google Sheet Test
+if st.button("Test Google Sheet"):
+    try:
+        sh = connect_sheet()
+        st.success(f"Connected ✅ {sh.title}")
+    except Exception as e:
+        st.error(e)
 
 # =====================================
 # Session State
