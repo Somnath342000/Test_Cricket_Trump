@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 import random
 import string
@@ -325,4 +324,3 @@ if st.session_state.match_id:
                 current_post
             )
         )
-```
