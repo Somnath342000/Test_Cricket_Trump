@@ -2,16 +2,10 @@ import streamlit as st
 import pandas as pd
 import random
 import string
-
-# ব্র্যাকেট সরিয়ে এক লাইনে আনা হয়েছে যেন কোনো ইনডেন্টেশন এরর না হয়
 from sheet import connect_sheet, create_match, match_exists, get_match, all_groups_locked
-
 from draft import batting_toss, bowling_toss, show_toss
-
 from group import draft_screen
-
 from player import selection_page
-
 from score import total_score, result
 
 # ==========================================
