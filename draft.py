@@ -1,220 +1,189 @@
 import random
 import streamlit as st
 from sheet import (
-save_toss,
-get_toss
+    save_toss,
+    get_toss
 )
 
 PLAYERS = [
-"Som",
-"Joy",
-"Krish"
+    "Som",
+    "Joy",
+    "Krish"
 ]
 
 # =====================================
-
 # Snake Draft Order
-
 # =====================================
 
 def snake(order):
+    return [
+        order[0],
+        order[1],
+        order[2],
+        order[2],
+        order[1],
+        order[0]
+    ]
 
-```
-return [
-    order[0],
-    order[1],
-    order[2],
-    order[2],
-    order[1],
-    order[0]
-]
-```
 
 # =====================================
-
 # Batting Toss
-
 # =====================================
 
 def batting_toss(match_id):
+    toss = get_toss(match_id)
 
-```
-toss = get_toss(match_id)
+    if (
+        toss and
+        len(toss["BatDraft"]) == 3
+    ):
+        return toss["BatDraft"]
 
-if (
-    toss and
-    len(toss["BatDraft"]) == 3
-):
-    return toss["BatDraft"]
+    order = random.sample(
+        PLAYERS,
+        3
+    )
 
-order = random.sample(
-    PLAYERS,
-    3
-)
+    bowl = []
 
-bowl = []
+    if toss:
+        bowl = toss["BowlDraft"]
 
-if toss:
-    bowl = toss["BowlDraft"]
+    save_toss(
+        match_id,
+        order,
+        bowl
+    )
 
-save_toss(
-    match_id,
-    order,
-    bowl
-)
+    return order
 
-return order
-```
 
 # =====================================
-
 # Bowling Toss
-
 # =====================================
 
 def bowling_toss(match_id):
+    toss = get_toss(match_id)
 
-```
-toss = get_toss(match_id)
+    if (
+        toss and
+        len(toss["BowlDraft"]) == 3
+    ):
+        return toss["BowlDraft"]
 
-if (
-    toss and
-    len(toss["BowlDraft"]) == 3
-):
-    return toss["BowlDraft"]
+    order = random.sample(
+        PLAYERS,
+        3
+    )
 
-order = random.sample(
-    PLAYERS,
-    3
-)
+    bat = []
 
-bat = []
+    if toss:
+        bat = toss["BatDraft"]
 
-if toss:
-    bat = toss["BatDraft"]
+    save_toss(
+        match_id,
+        bat,
+        order
+    )
 
-save_toss(
-    match_id,
-    bat,
-    order
-)
+    return order
 
-return order
-```
 
 # =====================================
-
 # Show Toss Result
-
 # =====================================
 
 def show_toss(
-title,
-order
+    title,
+    order
 ):
-
-```
-st.subheader(title)
-
-st.write(
-    f"🥇 1st : {order[0]}"
-)
-
-st.write(
-    f"🥈 2nd : {order[1]}"
-)
-
-st.write(
-    f"🥉 3rd : {order[2]}"
-)
-
-st.divider()
-
-draft = snake(order)
-
-st.write(
-    "### Snake Draft Order"
-)
-
-for i, p in enumerate(
-        draft,
-        start=1
-):
+    st.subheader(title)
 
     st.write(
-        f"Pick {i} : {p}"
+        f"🥇 1st : {order[0]}"
     )
-```
+
+    st.write(
+        f"🥈 2nd : {order[1]}"
+    )
+
+    st.write(
+        f"🥉 3rd : {order[2]}"
+    )
+
+    st.divider()
+
+    draft = snake(order)
+
+    st.write(
+        "### Snake Draft Order"
+    )
+
+    for i, p in enumerate(
+        draft,
+        start=1
+    ):
+        st.write(
+            f"Pick {i} : {p}"
+        )
+
 
 # =====================================
-
 # Current Turn
-
 # =====================================
 
 def current_turn(
-order,
-pick_no
+    order,
+    pick_no
 ):
+    draft = snake(order)
 
-```
-draft = snake(order)
+    if pick_no < 1:
+        return None
 
-if pick_no < 1:
-    return None
+    if pick_no > 6:
+        return None
 
-if pick_no > 6:
-    return None
+    return draft[pick_no - 1]
 
-return draft[pick_no - 1]
-```
 
 # =====================================
-
 # Check Turn
-
 # =====================================
 
 def can_pick(
-player,
-order,
-pick_no
-):
-
-```
-turn = current_turn(
+    player,
     order,
     pick_no
-)
+):
+    turn = current_turn(
+        order,
+        pick_no
+    )
 
-return player == turn
-```
+    return player == turn
+
 
 # =====================================
-
 # Get Pick Number
-
 # =====================================
 
-def next_pick(order, picked):
+def next_pick(
+    order,
+    picked
+):
+    draft = snake(order)
 
-```
-draft = snake(order)
+    if picked >= len(draft):
+        return None
 
-if picked >= len(draft):
-    return None
+    return draft[picked]
 
-return draft[picked]
-```
 
 # =====================================
-
 # Draft Finished?
-
 # =====================================
 
 def draft_finished(picked):
-
-```
-return picked >= 6
-```
+    return picked >= 6
