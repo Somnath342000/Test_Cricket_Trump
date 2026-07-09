@@ -1,193 +1,319 @@
+```python
 import streamlit as st
-import pandas as pd 
-import gspread
-from google.oauth2.service_account import Credentials
 import random
 import string
-from sheet import connect_sheet
-from draft import batting_toss, bowling_toss
-from group import pick_group
-from player import select_player
-from score import add_score, result
 
-st.set_page_config(page_title="Cricket Trump Cards", layout="wide")
+from sheet import (
+    create_match,
+    match_exists,
+    get_match
+)
+
+from draft import (
+    batting_toss,
+    bowling_toss,
+    show_toss
+)
+
+from group import (
+    draft_screen,
+    group_completed
+)
+
+from player import (
+    selection_page
+)
+
+from score import (
+    total_score,
+    result
+)
+
+# =====================================
+# Page Config
+# =====================================
+st.set_page_config(
+    page_title="Cricket Trump Cards",
+    layout="wide"
+)
 
 st.title("🏏 Cricket Stats Trump Cards")
 
-# -------------------------
+# =====================================
 # Session State
-# -------------------------
+# =====================================
 if "match_id" not in st.session_state:
     st.session_state.match_id = ""
 
 if "player" not in st.session_state:
     st.session_state.player = ""
 
-# -------------------------
-# Generate Match ID
-# -------------------------
-def generate_match():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-    
+# =====================================
+# Match ID Generator
+# =====================================
+def generate_match_id():
+
+    return ''.join(
+        random.choices(
+            string.ascii_uppercase +
+            string.digits,
+            k=6
+        )
+    )
+
+# =====================================
+# Sidebar
+# =====================================
 menu = st.sidebar.radio(
     "Menu",
-    ["Create Match", "Join Match"]
+    [
+        "Create Match",
+        "Join Match"
+    ]
 )
-# -------------------------
+
+# =====================================
 # Create Match
-# -------------------------
+# =====================================
 if menu == "Create Match":
 
     st.header("Create Match")
 
     player = st.selectbox(
         "Your Name",
-        ["Joy", "Krish", "Som"]
+        [
+            "Som",
+            "Joy",
+            "Krish"
+        ]
     )
 
-    if st.button("Create"):
+    if st.button("Create Match"):
 
-        match = generate_match()
+        match_id = generate_match_id()
 
-        st.session_state.match_id = match
+        create_match(
+            match_id
+        )
+
+        st.session_state.match_id = match_id
         st.session_state.player = player
 
-        sheet = connect_sheet()
-        match_sheet = sheet.worksheet("Match")
+        st.success(
+            "Match Created Successfully"
+        )
 
-        match_sheet.append_row([
-            match,
-            player,
-            "Waiting",
-            "",
-            ""
-        ])
+        st.code(match_id)
 
-        st.success("Match Created")
-        st.code(match)
-        st.info("Share this Match ID with other players.")
+        st.info(
+            "Share this Match ID with other players."
+        )
 
-# -------------------------
+# =====================================
 # Join Match
-# -------------------------
-else:
+# =====================================
+if menu == "Join Match":
 
     st.header("Join Match")
 
     player = st.selectbox(
         "Your Name",
-        ["Joy", "Krish", "Som"]
+        [
+            "Som",
+            "Joy",
+            "Krish"
+        ]
     )
 
-    match = st.text_input("Enter Match ID")
+    match_id = st.text_input(
+        "Enter Match ID"
+    )
 
-    if st.button("Join"):
+    if st.button("Join Match"):
 
-        sheet = connect_sheet()
-        match_sheet = sheet.worksheet("Match")
+        match_id = (
+            match_id
+            .strip()
+            .upper()
+        )
 
-        rows = match_sheet.get_all_values()
+        if match_exists(
+                match_id
+        ):
 
-        found = False
+            st.session_state.match_id = (
+                match_id
+            )
 
-        for r in rows:
-            if r[0] == match.upper():
-                found = True
-                break
+            st.session_state.player = (
+                player
+            )
 
-        if found:
-
-            st.session_state.match_id = match.upper()
-            st.session_state.player = player
-
-            st.success("Match Found")
-            st.success("Joined Successfully")
+            st.success(
+                "Joined Successfully"
+            )
 
         else:
-            st.error("Match ID Not Found")
+            st.error(
+                "Match ID Not Found"
+            )
 
-# -------------------------
+# =====================================
 # Dashboard
-# -------------------------
-if st.session_state.match_id != "":
+# =====================================
+if st.session_state.match_id:
 
     st.divider()
 
-    st.subheader("Current Match")
-
-    col1,col2 = st.columns(2)
-
-    with col1:
-        st.metric("Player",st.session_state.player)
-
-    with col2:
-        st.metric("Match ID",st.session_state.match_id)
-
-    st.success("Ready for Toss 🎲")
-
-if st.button("🎲 Start Batting Toss"):
-    batting_toss()
-
-if st.button("🎯 Start Bowling Toss"):
-    bowling_toss()
-    
-st.header("🏏 Group Draft")
-
-pick_group(
-    st.session_state.match_id,
-    st.session_state.player,
-    "BAT",
-    1
-)
-
-pick_group(
-    st.session_state.match_id,
-    st.session_state.player,
-    "BOWL",
-    1
-)
-st.header("🏏 Player Selection")
-
-select_player(
-    st.session_state.match_id,
-    st.session_state.player,
-    "A",
-    "BAT 1"
-)
-
-select_player(
-    st.session_state.match_id,
-    st.session_state.player,
-    "E",
-    "BAT 2"
-)
-
-select_player(
-    st.session_state.match_id,
-    st.session_state.player,
-    "L",
-    "BOWL"
-)
-st.header("🏆 Score")
-
-point = st.number_input(
-    "Point",
-    min_value=1,
-    max_value=6,
-    step=1
-)
-
-if st.button("Add Point"):
-    add_score(
-        st.session_state.match_id,
-        st.session_state.player,
-        point
-    )
-    st.success("Point Added")
-if st.button("Show Result"):
-
-    data = result(
+    match_id = (
         st.session_state.match_id
     )
 
-    st.write(data)
+    player = (
+        st.session_state.player
+    )
+
+    st.subheader(
+        "Current Match"
+    )
+
+    c1, c2 = st.columns(2)
+
+    with c1:
+        st.metric(
+            "Player",
+            player
+        )
+
+    with c2:
+        st.metric(
+            "Match ID",
+            match_id
+        )
+
+    match = get_match(
+        match_id
+    )
+
+    if match:
+
+        current_post = int(
+            match["CurrentPost"]
+        )
+
+        current_call = int(
+            match["CurrentCall"]
+        )
+
+    else:
+
+        current_post = 1
+        current_call = 1
+
+    st.info(
+        f"Post : {current_post} | Call : {current_call}"
+    )
+
+    # =====================================
+    # Toss
+    # =====================================
+    st.divider()
+
+    st.header("🎲 Toss")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        if st.button(
+                "Batting Toss"
+        ):
+
+            order = batting_toss(
+                match_id
+            )
+
+            show_toss(
+                "🏏 Batting Toss",
+                order
+            )
+
+    with col2:
+
+        if st.button(
+                "Bowling Toss"
+        ):
+
+            order = bowling_toss(
+                match_id
+            )
+
+            show_toss(
+                "🎯 Bowling Toss",
+                order
+            )
+
+    # =====================================
+    # Group Draft
+    # =====================================
+    st.divider()
+
+    st.header(
+        "🏏 Group Draft"
+    )
+
+    draft_screen(
+        match_id,
+        player
+    )
+
+    # =====================================
+    # Player Selection
+    # =====================================
+    if group_completed(
+            match_id,
+            player
+    ):
+
+        st.divider()
+
+        st.header(
+            "🃏 Card Selection"
+        )
+
+        selection_page(
+            match_id,
+            current_post,
+            player
+        )
+
+    # =====================================
+    # Scoreboard
+    # =====================================
+    st.divider()
+
+    st.header(
+        "🏆 Scoreboard"
+    )
+
+    score = total_score(
+        match_id,
+        current_post
+    )
+
+    st.dataframe(
+        score,
+        use_container_width=True
+    )
+
+    if st.button(
+            "Show Ranking"
+    ):
+
+        st.write(
+            result(
+                match_id,
+                current_post
+            )
+        )
+```
