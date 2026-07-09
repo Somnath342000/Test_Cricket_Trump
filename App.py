@@ -1,11 +1,14 @@
 import streamlit as st
+import pandas as pd
 import random
 import string
 
 from sheet import (
+    connect_sheet,
     create_match,
     match_exists,
-    get_match
+    get_match,
+    all_groups_locked
 )
 
 from draft import (
@@ -15,8 +18,7 @@ from draft import (
 )
 
 from group import (
-    draft_screen,
-    group_completed
+    draft_screen
 )
 
 from player import (
@@ -28,40 +30,47 @@ from score import (
     result
 )
 
-# =====================================
-# Page Config
-# =====================================
+# ==========================================
+# PAGE CONFIG
+# ==========================================
 st.set_page_config(
     page_title="Cricket Trump Cards",
     layout="wide"
 )
 
 st.title("🏏 Cricket Stats Trump Cards")
-st.title("🏏 Cricket Stats Trump Cards")
 
-# Google Sheet Test
-if st.button("Test Google Sheet"):
-    try:
-        sh = connect_sheet()
-        st.success(f"Connected ✅ {sh.title}")
-    except Exception as e:
-        st.error(e)
+# ==========================================
+# GOOGLE SHEET TEST
+# ==========================================
+with st.expander("Google Sheet Connection Test"):
 
-# =====================================
-# Session State
-# =====================================
+    if st.button("Test Google Sheet"):
+
+        try:
+            sh = connect_sheet()
+            st.success(
+                f"Connected ✅ {sh.title}"
+            )
+
+        except Exception as e:
+            st.error(e)
+
+# ==========================================
+# SESSION STATE
+# ==========================================
 if "match_id" not in st.session_state:
     st.session_state.match_id = ""
 
 if "player" not in st.session_state:
     st.session_state.player = ""
 
-# =====================================
-# Match ID Generator
-# =====================================
+# ==========================================
+# MATCH ID
+# ==========================================
 def generate_match_id():
 
-    return ''.join(
+    return "".join(
         random.choices(
             string.ascii_uppercase +
             string.digits,
@@ -69,9 +78,9 @@ def generate_match_id():
         )
     )
 
-# =====================================
-# Sidebar
-# =====================================
+# ==========================================
+# SIDEBAR
+# ==========================================
 menu = st.sidebar.radio(
     "Menu",
     [
@@ -80,9 +89,9 @@ menu = st.sidebar.radio(
     ]
 )
 
-# =====================================
-# Create Match
-# =====================================
+# ==========================================
+# CREATE MATCH
+# ==========================================
 if menu == "Create Match":
 
     st.header("Create Match")
@@ -104,8 +113,13 @@ if menu == "Create Match":
             match_id
         )
 
-        st.session_state.match_id = match_id
-        st.session_state.player = player
+        st.session_state.match_id = (
+            match_id
+        )
+
+        st.session_state.player = (
+            player
+        )
 
         st.success(
             "Match Created Successfully"
@@ -114,12 +128,12 @@ if menu == "Create Match":
         st.code(match_id)
 
         st.info(
-            "Share this Match ID with other players."
+            "Share this Match ID."
         )
 
-# =====================================
-# Join Match
-# =====================================
+# ==========================================
+# JOIN MATCH
+# ==========================================
 if menu == "Join Match":
 
     st.header("Join Match")
@@ -166,12 +180,10 @@ if menu == "Join Match":
                 "Match ID Not Found"
             )
 
-# =====================================
-# Dashboard
-# =====================================
+# ==========================================
+# DASHBOARD
+# ==========================================
 if st.session_state.match_id:
-
-    st.divider()
 
     match_id = (
         st.session_state.match_id
@@ -180,6 +192,8 @@ if st.session_state.match_id:
     player = (
         st.session_state.player
     )
+
+    st.divider()
 
     st.subheader(
         "Current Match"
@@ -222,12 +236,14 @@ if st.session_state.match_id:
         f"Post : {current_post} | Call : {current_call}"
     )
 
-    # =====================================
-    # Toss
-    # =====================================
+    # ======================================
+    # TOSS
+    # ======================================
     st.divider()
 
-    st.header("🎲 Toss")
+    st.header(
+        "🎲 Toss"
+    )
 
     col1, col2 = st.columns(2)
 
@@ -261,9 +277,9 @@ if st.session_state.match_id:
                 order
             )
 
-    # =====================================
-    # Group Draft
-    # =====================================
+    # ======================================
+    # GROUP DRAFT
+    # ======================================
     st.divider()
 
     st.header(
@@ -275,12 +291,11 @@ if st.session_state.match_id:
         player
     )
 
-    # =====================================
-    # Player Selection
-    # =====================================
-    if group_completed(
-            match_id,
-            player
+    # ======================================
+    # PLAYER SELECTION
+    # ======================================
+    if all_groups_locked(
+            match_id
     ):
 
         st.divider()
@@ -295,9 +310,15 @@ if st.session_state.match_id:
             player
         )
 
-    # =====================================
-    # Scoreboard
-    # =====================================
+    else:
+
+        st.info(
+            "Waiting for all players to finish Group Draft."
+        )
+
+    # ======================================
+    # SCOREBOARD
+    # ======================================
     st.divider()
 
     st.header(
@@ -309,8 +330,16 @@ if st.session_state.match_id:
         current_post
     )
 
+    df = pd.DataFrame(
+        score.items(),
+        columns=[
+            "Player",
+            "Points"
+        ]
+    )
+
     st.dataframe(
-        score,
+        df,
         use_container_width=True
     )
 
