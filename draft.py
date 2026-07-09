@@ -1,267 +1,220 @@
 import random
-import json
 import streamlit as st
-from sheet import get_sheet
+from sheet import (
+save_toss,
+get_toss
+)
 
 PLAYERS = [
-    "Som",
-    "Joy",
-    "Krish"
+"Som",
+"Joy",
+"Krish"
 ]
 
+# =====================================
 
-# ==========================
-# Snake Order
-# ==========================
+# Snake Draft Order
+
+# =====================================
+
 def snake(order):
 
-    return [
-        order[0],
-        order[1],
-        order[2],
-        order[2],
-        order[1],
-        order[0]
-    ]
+```
+return [
+    order[0],
+    order[1],
+    order[2],
+    order[2],
+    order[1],
+    order[0]
+]
+```
 
+# =====================================
 
-# ==========================
-# Save Toss
-# ==========================
-def save_toss(
-        match_id,
-        column,
-        order
-):
-
-    ws = get_sheet("Match")
-
-    rows = ws.get_all_values()
-
-    for i, r in enumerate(
-            rows[1:],
-            start=2
-    ):
-
-        if r[0] == match_id:
-
-            cols = {
-                "BatDraft": "E",
-                "BowlDraft": "F"
-            }
-
-            ws.update(
-                f"{cols[column]}{i}",
-                [[json.dumps(order)]]
-            )
-
-            return
-
-
-# ==========================
-# Read Toss
-# ==========================
-def get_toss(
-        match_id,
-        column
-):
-
-    ws = get_sheet("Match")
-
-    rows = ws.get_all_records()
-
-    for r in rows:
-
-        if r["MatchID"] == match_id:
-
-            value = r.get(
-                column,
-                ""
-            )
-
-            if value:
-                return json.loads(value)
-
-    return None
-
-
-# ==========================
 # Batting Toss
-# ==========================
+
+# =====================================
+
 def batting_toss(match_id):
 
-    order = get_toss(
-        match_id,
-        "BatDraft"
-    )
+```
+toss = get_toss(match_id)
 
-    if order is None:
+if (
+    toss and
+    len(toss["BatDraft"]) == 3
+):
+    return toss["BatDraft"]
 
-        order = random.sample(
-            PLAYERS,
-            3
-        )
+order = random.sample(
+    PLAYERS,
+    3
+)
 
-        save_toss(
-            match_id,
-            "BatDraft",
-            order
-        )
+bowl = []
 
-    return order
+if toss:
+    bowl = toss["BowlDraft"]
 
+save_toss(
+    match_id,
+    order,
+    bowl
+)
 
-# ==========================
+return order
+```
+
+# =====================================
+
 # Bowling Toss
-# ==========================
+
+# =====================================
+
 def bowling_toss(match_id):
 
-    order = get_toss(
-        match_id,
-        "BowlDraft"
-    )
+```
+toss = get_toss(match_id)
 
-    if order is None:
+if (
+    toss and
+    len(toss["BowlDraft"]) == 3
+):
+    return toss["BowlDraft"]
 
-        order = random.sample(
-            PLAYERS,
-            3
-        )
+order = random.sample(
+    PLAYERS,
+    3
+)
 
-        save_toss(
-            match_id,
-            "BowlDraft",
-            order
-        )
+bat = []
 
-    return order
+if toss:
+    bat = toss["BatDraft"]
 
+save_toss(
+    match_id,
+    bat,
+    order
+)
 
-# ==========================
-# Show Toss
-# ==========================
+return order
+```
+
+# =====================================
+
+# Show Toss Result
+
+# =====================================
+
 def show_toss(
-        title,
-        order
+title,
+order
 ):
 
-    st.subheader(title)
+```
+st.subheader(title)
+
+st.write(
+    f"🥇 1st : {order[0]}"
+)
+
+st.write(
+    f"🥈 2nd : {order[1]}"
+)
+
+st.write(
+    f"🥉 3rd : {order[2]}"
+)
+
+st.divider()
+
+draft = snake(order)
+
+st.write(
+    "### Snake Draft Order"
+)
+
+for i, p in enumerate(
+        draft,
+        start=1
+):
 
     st.write(
-        f"🥇 1st : {order[0]}"
+        f"Pick {i} : {p}"
     )
+```
 
-    st.write(
-        f"🥈 2nd : {order[1]}"
-    )
+# =====================================
 
-    st.write(
-        f"🥉 3rd : {order[2]}"
-    )
-
-    st.divider()
-
-    seq = snake(order)
-
-    st.write(
-        "Snake Draft Order"
-    )
-
-    for i, p in enumerate(
-            seq,
-            start=1
-    ):
-
-        st.write(
-            f"Pick {i} : {p}"
-        )
-
-
-# ==========================
 # Current Turn
-# ==========================
+
+# =====================================
+
 def current_turn(
-        order,
-        pick_no
+order,
+pick_no
 ):
 
-    seq = snake(order)
+```
+draft = snake(order)
 
-    if pick_no < 1:
-        return None
+if pick_no < 1:
+    return None
 
-    if pick_no > 6:
-        return None
+if pick_no > 6:
+    return None
 
-    return seq[
-        pick_no - 1
-    ]
+return draft[pick_no - 1]
+```
 
+# =====================================
 
-# ==========================
-# Can Player Pick?
-# ==========================
+# Check Turn
+
+# =====================================
+
 def can_pick(
-        player,
-        order,
-        pick_no
+player,
+order,
+pick_no
 ):
 
-    turn = current_turn(
-        order,
-        pick_no
-    )
+```
+turn = current_turn(
+    order,
+    pick_no
+)
 
-    return player == turn
+return player == turn
+```
 
+# =====================================
 
-# ==========================
-# Current Pick Number
-# ==========================
-def current_pick(
-        match_id,
-        typ
-):
+# Get Pick Number
 
-    ws = get_sheet("Groups")
+# =====================================
 
-    rows = ws.get_all_records()
+def next_pick(order, picked):
 
-    count = 0
+```
+draft = snake(order)
 
-    for r in rows:
+if picked >= len(draft):
+    return None
 
-        if r["MatchID"] != match_id:
-            continue
+return draft[picked]
+```
 
-        if typ == "BAT":
+# =====================================
 
-            if r["Bat1"]:
-                count += 1
+# Draft Finished?
 
-            if r["Bat2"]:
-                count += 1
+# =====================================
 
-        else:
+def draft_finished(picked):
 
-            if r["Bowl1"]:
-                count += 1
-
-            if r["Bowl2"]:
-                count += 1
-
-    return count + 1
-
-
-# ==========================
-# Draft Completed?
-# ==========================
-def draft_completed(
-        match_id,
-        typ
-):
-
-    return current_pick(
-        match_id,
-        typ
-    ) > 6
+```
+return picked >= 6
+```
