@@ -71,28 +71,26 @@ def save_group_pick(
     if field.startswith("Bat"):
         if value not in available_batting(match_id):
             st.error(
-    f"{value} group already selected."
-)
-return
+                f"{value} group already selected."
+            )
+            return
+
     if field.startswith("Bowl"):
         if value not in available_bowling(match_id):
             st.error(
-    f"{value} group already selected."
-)
-return
+                f"{value} group already selected."
+            )
+            return
 
     ws = get_sheet("Groups")
     rows = ws.get_all_values()
 
-    for i, r in enumerate(
-            rows[1:],
-            start=2
-    ):
+    for i, r in enumerate(rows[1:], start=2):
 
         if (
-                len(r) >= 2 and
-                r[0] == match_id and
-                r[1] == player
+            len(r) >= 2 and
+            str(r[0]) == str(match_id) and
+            str(r[1]) == str(player)
         ):
 
             columns = {
@@ -108,7 +106,6 @@ return
                 range_name=f"{col}{i}",
                 values=[[value]]
             )
-
             return
 
     row = [
@@ -128,7 +125,6 @@ return
     }
 
     row[fields[field]] = value
-
     ws.append_row(row)
 
 
@@ -162,12 +158,7 @@ def draft_screen(
         match_id,
         player
 ):
-    st.subheader(
-        "🏏 Group Selection"
-    )
-
-    # Auto refresh every 3 seconds
-    st.empty()
+    st.subheader("🏏 Group Selection")
 
     data = get_player_groups(
         match_id,
@@ -195,20 +186,14 @@ def draft_screen(
                 key="bat1"
             )
 
-            if st.button(
-                    "Save Bat1"
-            ):
-                try:
-                    save_group_pick(
-                        match_id,
-                        player,
-                        "Bat1",
-                        g
-                    )
-                    st.rerun()
-
-                except Exception as e:
-                    st.error(str(e))
+            if st.button("Save Bat1"):
+                save_group_pick(
+                    match_id,
+                    player,
+                    "Bat1",
+                    g
+                )
+                st.rerun()
         else:
             st.warning(
                 "No batting groups left."
@@ -231,20 +216,18 @@ def draft_screen(
                 key="bat2"
             )
 
-            if st.button(
-                    "Save Bat2"
-            ):
-                try:
-                    save_group_pick(
-                        match_id,
-                        player,
-                        "Bat2",
-                        g
-                    )
-                    st.rerun()
-
-                except Exception as e:
-                    st.error(str(e))
+            if st.button("Save Bat2"):
+                save_group_pick(
+                    match_id,
+                    player,
+                    "Bat2",
+                    g
+                )
+                st.rerun()
+        else:
+            st.warning(
+                "No batting groups left."
+            )
     else:
         st.success(
             f'Bat2 : {data["Bat2"]}'
@@ -263,20 +246,14 @@ def draft_screen(
                 key="bowl1"
             )
 
-            if st.button(
-                    "Save Bowl1"
-            ):
-                try:
-                    save_group_pick(
-                        match_id,
-                        player,
-                        "Bowl1",
-                        g
-                    )
-                    st.rerun()
-
-                except Exception as e:
-                    st.error(str(e))
+            if st.button("Save Bowl1"):
+                save_group_pick(
+                    match_id,
+                    player,
+                    "Bowl1",
+                    g
+                )
+                st.rerun()
         else:
             st.warning(
                 "No bowling groups left."
@@ -299,20 +276,14 @@ def draft_screen(
                 key="bowl2"
             )
 
-            if st.button(
-                    "Save Bowl2"
-            ):
-                try:
-                    save_group_pick(
-                        match_id,
-                        player,
-                        "Bowl2",
-                        g
-                    )
-                    st.rerun()
-
-                except Exception as e:
-                    st.error(str(e))
+            if st.button("Save Bowl2"):
+                save_group_pick(
+                    match_id,
+                    player,
+                    "Bowl2",
+                    g
+                )
+                st.rerun()
         else:
             st.warning(
                 "No bowling groups left."
