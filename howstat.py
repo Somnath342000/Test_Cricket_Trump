@@ -960,3 +960,335 @@ def database_status():
 
     }
 #-----------part 3b-----#
+
+# =====================================
+# HOWSTAT ENGINE
+# PART - 3B
+# CARD VALIDATION ENGINE
+# =====================================
+
+# =====================================
+# VALID CARD
+# =====================================
+
+def valid_card(card):
+
+    """
+    Check player exists
+    """
+
+    if card is None:
+        return False
+
+    card = str(card).strip()
+
+    if card == "":
+        return False
+
+    return exists(card)
+
+
+# =====================================
+# VALID CARD LIST
+# =====================================
+
+def valid_cards(cards):
+
+    if cards is None:
+        return False
+
+    if len(cards) != 3:
+        return False
+
+    for card in cards:
+
+        if not valid_card(card):
+
+            return False
+
+    return True
+
+
+# =====================================
+# DUPLICATE CARD
+# =====================================
+
+def duplicate_cards(cards):
+
+    cards = [
+
+        str(c).strip()
+
+        for c in cards
+
+    ]
+
+    return len(cards) != len(set(cards))
+
+
+# =====================================
+# UNIQUE CARD LIST
+# =====================================
+
+def unique_cards(cards):
+
+    result = []
+
+    for card in cards:
+
+        card = str(card).strip()
+
+        if card not in result:
+
+            result.append(card)
+
+    return result
+
+
+# =====================================
+# VALID 3 CARD SELECTION
+# =====================================
+
+def validate_selection(cards):
+
+    """
+    Returns
+
+    (
+        True,
+        "OK"
+    )
+
+    or
+
+    (
+        False,
+        "Reason"
+    )
+    """
+
+    if len(cards) != 3:
+
+        return (
+
+            False,
+
+            "Exactly 3 cards required."
+
+        )
+
+    if duplicate_cards(cards):
+
+        return (
+
+            False,
+
+            "Duplicate cards selected."
+
+        )
+
+    for card in cards:
+
+        if not valid_card(card):
+
+            return (
+
+                False,
+
+                f"Invalid player : {card}"
+
+            )
+
+    return (
+
+        True,
+
+        "OK"
+
+    )
+
+
+# =====================================
+# PLAYER CATEGORY VALUE
+# =====================================
+
+def player_value(
+
+        player,
+
+        category
+
+):
+
+    if not exists(player):
+
+        return None
+
+    return fast_stat(
+
+        player,
+
+        category
+
+    )
+
+
+# =====================================
+# PLAYER HAS CATEGORY?
+# =====================================
+
+def player_has_category(
+
+        player,
+
+        category
+
+):
+
+    value = player_value(
+
+        player,
+
+        category
+
+    )
+
+    return value is not None
+
+
+# =====================================
+# GET VALUES OF 3 CARDS
+# =====================================
+
+def card_values(
+
+        cards,
+
+        category
+
+):
+
+    values = {}
+
+    for card in cards:
+
+        values[card] = player_value(
+
+            card,
+
+            category
+
+        )
+
+    return values
+
+
+# =====================================
+# FILTER INVALID CARDS
+# =====================================
+
+def filter_invalid_cards(cards):
+
+    valid = []
+
+    for card in cards:
+
+        if valid_card(card):
+
+            valid.append(card)
+
+    return valid
+
+
+# =====================================
+# CARD COUNT
+# =====================================
+
+def card_count(cards):
+
+    return len(
+
+        filter_invalid_cards(cards)
+
+    )
+
+
+# =====================================
+# CARD SUMMARY
+# =====================================
+
+def card_summary(cards):
+
+    ok, message = validate_selection(cards)
+
+    return {
+
+        "Valid": ok,
+
+        "Message": message,
+
+        "Cards": filter_invalid_cards(cards),
+
+        "Count": card_count(cards)
+
+    }
+
+
+# =====================================
+# PLAYER COMPLETE STATS
+# =====================================
+
+def complete_player_stats(player):
+
+    if not exists(player):
+
+        return None
+
+    return fast_player_data(player)
+
+
+# =====================================
+# MULTIPLE PLAYER DATA
+# =====================================
+
+def players_data(players):
+
+    result = {}
+
+    for player in players:
+
+        result[player] = complete_player_stats(player)
+
+    return result
+
+
+# =====================================
+# PLAYER STAT DICTIONARY
+# =====================================
+
+def player_stat_dict(
+
+        players,
+
+        category
+
+):
+
+    result = {}
+
+    for player in players:
+
+        result[player] = player_value(
+
+            player,
+
+            category
+
+        )
+
+    return result
+
+#------Part 3c------#
+
+
+
