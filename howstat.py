@@ -1290,5 +1290,279 @@ def player_stat_dict(
 
 #------Part 3c------#
 
+# =====================================
+# HOWSTAT ENGINE
+# PART - 3C
+# DATA PREPARATION ENGINE
+# =====================================
 
+# =====================================
+# LOAD CARD STATS
+# =====================================
+
+def load_card_stats(cards):
+
+    """
+    Returns
+
+    {
+        player:{
+            all stats
+        }
+    }
+    """
+
+    result = {}
+
+    for card in cards:
+
+        if not valid_card(card):
+            continue
+
+        result[card] = complete_player_stats(card)
+
+    return result
+
+
+# =====================================
+# CATEGORY VALUES
+# =====================================
+
+def category_values(cards, category):
+
+    """
+    Returns
+
+    {
+        card:value
+    }
+    """
+
+    values = {}
+
+    stats = load_card_stats(cards)
+
+    for card, data in stats.items():
+
+        values[card] = data.get(category)
+
+    return values
+
+
+# =====================================
+# VALID CATEGORY VALUES
+# =====================================
+
+def valid_category_values(cards, category):
+
+    values = category_values(
+        cards,
+        category
+    )
+
+    result = {}
+
+    for card, value in values.items():
+
+        if value is None:
+            continue
+
+        if str(value).strip() == "":
+            continue
+
+        result[card] = value
+
+    return result
+
+
+# =====================================
+# CARD EXISTS IN DATABASE
+# =====================================
+
+def cards_exist(cards):
+
+    for card in cards:
+
+        if not valid_card(card):
+
+            return False
+
+    return True
+
+
+# =====================================
+# COMPLETE VALIDATION
+# =====================================
+
+def validate_cards(cards):
+
+    ok, message = validate_selection(cards)
+
+    if not ok:
+
+        return (
+
+            False,
+
+            message
+
+        )
+
+    if not cards_exist(cards):
+
+        return (
+
+            False,
+
+            "Card not found."
+
+        )
+
+    return (
+
+        True,
+
+        "OK"
+
+    )
+
+
+# =====================================
+# PLAYER VALUE MAP
+# =====================================
+
+def player_value_map(cards, category):
+
+    ok, _ = validate_cards(cards)
+
+    if not ok:
+
+        return {}
+
+    return valid_category_values(
+
+        cards,
+
+        category
+
+    )
+
+
+# =====================================
+# CARD INFORMATION
+# =====================================
+
+def card_information(card):
+
+    if not valid_card(card):
+
+        return None
+
+    return {
+
+        "Name": card,
+
+        "Group": group(card),
+
+        "Stats": complete_player_stats(card)
+
+    }
+
+
+# =====================================
+# ALL CARD INFORMATION
+# =====================================
+
+def cards_information(cards):
+
+    info = {}
+
+    for card in cards:
+
+        data = card_information(card)
+
+        if data is not None:
+
+            info[card] = data
+
+    return info
+
+
+# =====================================
+# REMOVE INVALID
+# =====================================
+
+def remove_invalid_cards(cards):
+
+    return [
+
+        card
+
+        for card in cards
+
+        if valid_card(card)
+
+    ]
+
+
+# =====================================
+# DATABASE HEALTH
+# =====================================
+
+def database_health():
+
+    return {
+
+        "Ready": database_ready(),
+
+        "Players": player_count(),
+
+        "Columns": len(database_columns()),
+
+        "Loaded": load_database() is not None
+
+    }
+
+
+# =====================================
+# ENGINE READY
+# =====================================
+
+def engine_ready():
+
+    health = database_health()
+
+    return (
+
+        health["Ready"]
+
+        and
+
+        health["Players"] > 0
+
+    )
+
+
+# =====================================
+# HOWSTAT STATUS
+# =====================================
+
+def howstat_status():
+
+    return {
+
+        "Engine":
+
+            engine_ready(),
+
+        "Database":
+
+            database_health(),
+
+        "Total Players":
+
+            player_count()
+
+    }
+#-----------part4----------#
 
