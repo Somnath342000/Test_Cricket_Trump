@@ -2232,3 +2232,17 @@ def match_summary(
     }
 #------------Part 8a -------#
 
+# ==========================================
+# ENGINE PART-8A
+# HOWSTAT INTEGRATION ENGINE
+# ==========================================
+
+from howstat import (
+    player_value,
+    numeric_stat,
+    figure_stat,
+    is_higher,
+    is_lower,
+    is_figure,
+    compare_figures
+) 
