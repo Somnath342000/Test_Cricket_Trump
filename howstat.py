@@ -1,242 +1,962 @@
-import requests
+import pandas as pd
 import streamlit as st
-from bs4 import BeautifulSoup
+
+# =====================================
+# HOWSTAT ENGINE
+# PART - 1
+# =====================================
+
+PLAYER_FILE = "Players.xlsx"
 
 
-# ==========================
-# Download Page
-# ==========================
+# =====================================
+# LOAD DATABASE
+# =====================================
+
 @st.cache_data(show_spinner=False)
-def get_page(url):
+def load_database():
+    """
+    Load complete player database.
 
-    headers = {
-        "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-    }
+    Excel Columns Example
 
-    r = requests.get(
-        url,
-        headers=headers,
-        timeout=30
+    Player Name
+    Group
+    Matches
+    Innings
+    Aggregate
+    Highest Score
+    Average
+    50s
+    100s
+    200s
+    300s
+    Ducks
+    4s
+    6s
+    Balls Faced
+    Top Scored in Innings
+
+    Balls
+    Maidens
+    Runs Conceded
+    Wickets
+    Bowling Average
+    5 Wickets in Innings
+    10 Wickets in Match
+    Best - Innings
+    Best - Match
+    Economy Rate
+    Strike Rate
+
+    Catches
+    Most Catches in Innings
+    Most Catches in Match
+    """
+
+    df = pd.read_excel(
+        PLAYER_FILE
     )
 
-    r.raise_for_status()
+    df = df.fillna("")
 
-    return r.text
+    return df
 
 
-# ==========================
-# Safe Number
-# ==========================
-def to_int(value):
+# =====================================
+# TOTAL PLAYERS
+# =====================================
+
+def total_players():
+
+    return len(
+        load_database()
+    )
+
+
+# =====================================
+# ALL PLAYER NAMES
+# =====================================
+
+def player_names():
+
+    df = load_database()
+
+    return sorted(
+
+        df["Player Name"]
+
+        .tolist()
+
+    )
+
+
+# =====================================
+# PLAYER EXISTS
+# =====================================
+
+def player_exists(player):
+
+    return player in player_names()
+
+
+# =====================================
+# GET PLAYER ROW
+# =====================================
+
+def player_row(player):
+
+    df = load_database()
+
+    row = df[
+        df["Player Name"] == player
+    ]
+
+    if row.empty:
+        return None
+
+    return row.iloc[0]
+
+
+# =====================================
+# PLAYER GROUP
+# =====================================
+
+def player_group(player):
+
+    row = player_row(player)
+
+    if row is None:
+        return None
+
+    return row["Group"]
+
+
+# =====================================
+# COMPLETE PLAYER DATA
+# =====================================
+
+def player_data(player):
+
+    row = player_row(player)
+
+    if row is None:
+        return None
+
+    return row.to_dict()
+
+
+# =====================================
+# PLAYER STAT
+# =====================================
+
+def get_player_stat(
+
+        player,
+
+        category
+
+):
+
+    data = player_data(player)
+
+    if data is None:
+
+        return None
+
+    return data.get(
+        category
+    )
+
+
+# =====================================
+# AVAILABLE COLUMNS
+# =====================================
+
+def database_columns():
+
+    return list(
+
+        load_database()
+
+        .columns
+
+    )
+
+
+# =====================================
+# VALID CATEGORY
+# =====================================
+
+def category_exists(category):
+
+    return (
+
+        category
+
+        in
+
+        database_columns()
+
+    )
+
+
+# =====================================
+# DATABASE SUMMARY
+# =====================================
+
+def database_summary():
+
+    df = load_database()
+
+    return {
+
+        "Players":
+
+            len(df),
+
+        "Columns":
+
+            len(df.columns),
+
+        "Groups":
+
+            sorted(
+
+                df["Group"]
+
+                .unique()
+
+                .tolist()
+
+            )
+
+    }
+#-------part2------#
+# =====================================
+# HOWSTAT ENGINE
+# PART - 2
+# Data Cleaning & Value Engine
+# =====================================
+
+import re
+
+# =====================================
+# Higher Value Categories
+# =====================================
+
+HIGHER_VALUE = [
+
+    "Matches",
+    "Innings",
+    "Aggregate",
+    "Highest Score",
+    "Average",
+    "50s",
+    "100s",
+    "200s",
+    "300s",
+    "4s",
+    "6s",
+    "Balls Faced",
+    "Top Scored in Innings",
+
+    "Balls",
+    "Maidens",
+    "Wickets",
+    "5 Wickets in Innings",
+    "10 Wickets in Match",
+
+    "Catches",
+    "Most Catches in Innings",
+    "Most Catches in Match"
+
+]
+
+# =====================================
+# Lower Value Categories
+# =====================================
+
+LOWER_VALUE = [
+
+    "Ducks",
+    "Bowling Average",
+    "Economy Rate",
+    "Strike Rate",
+    "Runs Conceded"
+
+]
+
+# =====================================
+# Bowling Figure Categories
+# =====================================
+
+FIGURE_VALUE = [
+
+    "Best - Innings",
+    "Best - Match"
+
+]
+
+# =====================================
+# Is Higher Category
+# =====================================
+
+def is_higher(category):
+
+    return category in HIGHER_VALUE
+
+
+# =====================================
+# Is Lower Category
+# =====================================
+
+def is_lower(category):
+
+    return category in LOWER_VALUE
+
+
+# =====================================
+# Is Figure Category
+# =====================================
+
+def is_figure(category):
+
+    return category in FIGURE_VALUE
+
+
+# =====================================
+# Empty Value
+# =====================================
+
+def empty_value(value):
+
+    if value is None:
+        return True
+
+    if str(value).strip() == "":
+        return True
+
+    if str(value).lower() == "nan":
+        return True
+
+    return False
+
+
+# =====================================
+# Numeric Value
+# =====================================
+
+def numeric(value):
+
+    if empty_value(value):
+        return 0
 
     try:
+
+        value = str(value)
+
         value = value.replace(",", "")
-        return int(value)
+
+        return float(value)
+
     except:
+
         return 0
 
 
-def to_float(value):
+# =====================================
+# Integer Value
+# =====================================
 
-    try:
-        value = value.replace(",", "")
-        return float(value)
-    except:
-        return 0.0
+def integer(value):
 
+    return int(
 
-# ==========================
-# Parse BBI / BBM
-# ==========================
-def parse_best(text):
+        round(
 
-    try:
-        w, r = text.split("/")
-        return (
-            int(w.strip()),
-            int(r.strip())
+            numeric(value)
+
         )
-    except:
+
+    )
+
+
+# =====================================
+# Clean Text
+# =====================================
+
+def clean_text(value):
+
+    if empty_value(value):
+        return ""
+
+    return str(value).strip()
+
+
+# =====================================
+# Parse Bowling Figure
+# Example:
+# 9/56
+# 10/240
+# =====================================
+
+def parse_figure(value):
+
+    value = clean_text(value)
+
+    if "/" not in value:
+
         return (
+
             0,
+
             9999
+
+        )
+
+    try:
+
+        wickets, runs = value.split("/")
+
+        wickets = int(wickets)
+
+        runs = int(runs)
+
+        return (
+
+            wickets,
+
+            runs
+
+        )
+
+    except:
+
+        return (
+
+            0,
+
+            9999
+
         )
 
 
-# ==========================
-# Compare BBI / BBM
-# Return:
-# 1 = first wins
-# -1 = second wins
-# 0 = tie
-# ==========================
-def compare_best(a, b):
+# =====================================
+# Figure To Dictionary
+# =====================================
 
-    wa, ra = a
-    wb, rb = b
+def figure_dict(value):
 
-    if wa > wb:
+    wickets, runs = parse_figure(value)
+
+    return {
+
+        "Wickets": wickets,
+
+        "Runs": runs
+
+    }
+
+
+# =====================================
+# Figure Text
+# =====================================
+
+def figure_text(value):
+
+    wickets, runs = parse_figure(value)
+
+    return f"{wickets}/{runs}"
+
+
+# =====================================
+# Compare Figures
+# Return
+# 1 = First Better
+# 2 = Second Better
+# 0 = Equal
+# =====================================
+
+def compare_figures(
+
+        figure1,
+
+        figure2
+
+):
+
+    w1, r1 = parse_figure(
+
+        figure1
+
+    )
+
+    w2, r2 = parse_figure(
+
+        figure2
+
+    )
+
+    # More wickets win
+
+    if w1 > w2:
+
         return 1
 
-    if wb > wa:
-        return -1
+    if w2 > w1:
 
-    if ra < rb:
+        return 2
+
+    # Same wickets
+    # Less runs win
+
+    if r1 < r2:
+
         return 1
 
-    if rb < ra:
-        return -1
+    if r2 < r1:
+
+        return 2
 
     return 0
 
 
-# ==========================
-# Parse Statistics
-# ==========================
+# =====================================
+# Valid Player
+# =====================================
+
+def valid_player(player):
+
+    return player_exists(player)
+
+
+# =====================================
+# Valid Category
+# =====================================
+
+def valid_category(category):
+
+    return category_exists(category)
+
+
+# =====================================
+# Read Stat
+# =====================================
+
+def stat(player, category):
+
+    if not valid_player(player):
+
+        return None
+
+    if not valid_category(category):
+
+        return None
+
+    return get_player_stat(
+
+        player,
+
+        category
+
+    )
+
+
+# =====================================
+# Numeric Stat
+# =====================================
+
+def numeric_stat(
+
+        player,
+
+        category
+
+):
+
+    return numeric(
+
+        stat(
+
+            player,
+
+            category
+
+        )
+
+    )
+
+
+# =====================================
+# Figure Stat
+# =====================================
+
+def figure_stat(
+
+        player,
+
+        category
+
+):
+
+    return parse_figure(
+
+        stat(
+
+            player,
+
+            category
+
+        )
+
+    )
+
+
+# =====================================
+# Player Summary
+# =====================================
+
+def player_summary(player):
+
+    if not valid_player(player):
+
+        return None
+
+    return {
+
+        "Player":
+
+            player,
+
+        "Group":
+
+            player_group(player),
+
+        "Matches":
+
+            numeric_stat(
+
+                player,
+
+                "Matches"
+
+            ),
+
+        "Runs":
+
+            numeric_stat(
+
+                player,
+
+                "Aggregate"
+
+            ),
+
+        "Wickets":
+
+            numeric_stat(
+
+                player,
+
+                "Wickets"
+
+            ),
+
+        "Catches":
+
+            numeric_stat(
+
+                player,
+
+                "Catches"
+
+            )
+
+    }
+#---------part 3A-------->
+# =====================================
+# HOWSTAT ENGINE
+# PART - 3A
+# PLAYER INDEX ENGINE
+# =====================================
+
+from functools import lru_cache
+
+# =====================================
+# PLAYER INDEX
+# =====================================
+
 @st.cache_data(show_spinner=False)
-def get_player_stats(url):
+def player_index():
 
-    html = get_page(url)
+    """
+    Create player dictionary.
 
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
+    Key:
+        Player Name
+
+    Value:
+        Complete Player Record
+    """
+
+    df = load_database()
+
+    index = {}
+
+    for _, row in df.iterrows():
+
+        record = row.to_dict()
+
+        name = str(
+            record["Player Name"]
+        ).strip()
+
+        index[name] = record
+
+    return index
+
+
+# =====================================
+# GET RECORD
+# =====================================
+
+def player_record(player):
+
+    return player_index().get(player)
+
+
+# =====================================
+# FAST PLAYER DATA
+# =====================================
+
+def fast_player_data(player):
+
+    record = player_record(player)
+
+    if record is None:
+
+        return None
+
+    return dict(record)
+
+
+# =====================================
+# FAST PLAYER STAT
+# =====================================
+
+def fast_stat(
+
+        player,
+
+        category
+
+):
+
+    record = player_record(player)
+
+    if record is None:
+
+        return None
+
+    return record.get(category)
+
+
+# =====================================
+# PLAYER FOUND?
+# =====================================
+
+def player_found(player):
+
+    return player in player_index()
+
+
+# =====================================
+# PLAYER COUNT
+# =====================================
+
+def player_count():
+
+    return len(
+
+        player_index()
+
     )
 
-    txt = soup.get_text(
-        "\n",
-        strip=True
+
+# =====================================
+# ALL PLAYERS
+# =====================================
+
+def all_players():
+
+    return sorted(
+
+        player_index().keys()
+
     )
 
-    lines = txt.split("\n")
 
-    stats = {}
+# =====================================
+# SEARCH PLAYER
+# =====================================
 
-    for i, line in enumerate(lines):
+def search_player(keyword):
 
-        line = line.strip()
+    keyword = str(
 
-        try:
-            value = lines[i + 1].strip()
-        except:
-            value = ""
+        keyword
 
-        # -----------------
-        # Batting
-        # -----------------
-        if line == "Matches":
-            stats["Matches"] = to_int(value)
+    ).lower().strip()
 
-        elif line == "Innings":
-            stats["Innings"] = to_int(value)
+    result = []
 
-        elif line == "Aggregate":
-            stats["Aggregate"] = to_int(value)
+    for player in all_players():
 
-        elif line == "Highest Score":
-            stats["Highest Score"] = to_int(value)
+        if keyword in player.lower():
 
-        elif line == "Average":
-            stats["Average"] = to_float(value)
+            result.append(player)
 
-        elif line == "50s":
-            stats["50s"] = to_int(value)
-
-        elif line == "100s":
-            stats["100s"] = to_int(value)
-
-        elif line == "200s":
-            stats["200s"] = to_int(value)
-
-        elif line == "300s":
-            stats["300s"] = to_int(value)
-
-        elif line == "4s":
-            stats["4s"] = to_int(value)
-
-        elif line == "6s":
-            stats["6s"] = to_int(value)
-
-        elif line == "Balls Faced":
-            stats["Balls Faced"] = to_int(value)
-
-        elif line == "Top Scored in Innings":
-            stats["Top Scored in Innings"] = to_int(value)
-
-        elif line == "Ducks":
-            stats["Ducks"] = to_int(value)
-
-        # -----------------
-        # Bowling
-        # -----------------
-        elif line == "Balls":
-            stats["Balls"] = to_int(value)
-
-        elif line == "Maidens":
-            stats["Maidens"] = to_int(value)
-
-        elif line == "Runs Conceded":
-            stats["Runs Conceded"] = to_int(value)
-
-        elif line == "Wickets":
-            stats["Wickets"] = to_int(value)
-
-        elif line == "Bowling Average":
-            stats["Bowling Average"] = to_float(value)
-
-        elif line == "Economy Rate":
-            stats["Economy Rate"] = to_float(value)
-
-        elif line == "Strike Rate":
-            stats["Strike Rate"] = to_float(value)
-
-        elif line == "5 Wickets in Innings":
-            stats["5 Wickets in Innings"] = to_int(value)
-
-        elif line == "10 Wickets in Match":
-            stats["10 Wickets in Match"] = to_int(value)
-
-        elif line == "Best - Innings":
-            stats["Best Innings"] = parse_best(value)
-
-        elif line == "Best - Match":
-            stats["Best Match"] = parse_best(value)
-
-        # -----------------
-        # Fielding
-        # -----------------
-        elif line == "Catches":
-            stats["Catches"] = to_int(value)
-
-        elif line == "Most Catches in Innings":
-            stats["Most Catches in Innings"] = to_int(value)
-
-        elif line == "Most Catches in Match":
-            stats["Most Catches in Match"] = to_int(value)
-
-    return stats
+    return result
 
 
-# ==========================
-# Get One Category
-# ==========================
-def get_value(url, category):
+# =====================================
+# PLAYER POSITION
+# =====================================
 
-    stats = get_player_stats(url)
+def player_position(player):
 
-    if category in stats:
-        return stats[category]
+    players = all_players()
 
-    return 0
+    if player not in players:
+
+        return -1
+
+    return players.index(player) + 1
 
 
-# ==========================
-# Special Category Check
-# ==========================
-def is_best_category(category):
+# =====================================
+# PLAYER EXISTS
+# =====================================
 
-    return category in [
-        "Best Innings",
-        "Best Match"
-    ]
+def exists(player):
+
+    return player_found(player)
+
+
+# =====================================
+# GET GROUP
+# =====================================
+
+def group(player):
+
+    record = player_record(player)
+
+    if record is None:
+
+        return None
+
+    return record.get("Group")
+
+
+# =====================================
+# PLAYER INFO
+# =====================================
+
+def player_info(player):
+
+    record = player_record(player)
+
+    if record is None:
+
+        return None
+
+    return {
+
+        "Name":
+
+            player,
+
+        "Group":
+
+            record.get("Group"),
+
+        "Matches":
+
+            record.get("Matches"),
+
+        "Runs":
+
+            record.get("Aggregate"),
+
+        "Wickets":
+
+            record.get("Wickets"),
+
+        "Catches":
+
+            record.get("Catches")
+
+    }
+
+
+# =====================================
+# REFRESH CACHE
+# =====================================
+
+def refresh_database():
+
+    load_database.clear()
+
+    player_index.clear()
+
+
+# =====================================
+# DATABASE READY?
+# =====================================
+
+def database_ready():
+
+    try:
+
+        return (
+
+            player_count()
+
+            >
+
+            0
+
+        )
+
+    except:
+
+        return False
+
+
+# =====================================
+# DATABASE STATUS
+# =====================================
+
+def database_status():
+
+    return {
+
+        "Loaded":
+
+            database_ready(),
+
+        "Players":
+
+            player_count(),
+
+        "Columns":
+
+            len(
+
+                database_columns()
+
+            )
+
+    }
+#-----------part 3b-----#
